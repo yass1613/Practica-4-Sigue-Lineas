@@ -26,7 +26,8 @@
 #define PIN_RBGLED 4
 #define NUM_LEDS 1
 
-#define DELAY_T1 
+#define PERIODIC_T1 100
+#define COMPUTATION_TIME_ON_T1 270
 CRGB leds[NUM_LEDS];
 
 
@@ -49,15 +50,23 @@ static void Task1(void *parameters) {
   TickType_t xLastWakeTime, aux;
 
   while(1) {
+    uint32_t start = micros();
     xLastWakeTime = xTaskGetTickCount();
     aux = xLastWakeTime;
 
+    left_IR = analogRead(PIN_ITR20001_LEFT);
+    mid_IR  = analogRead(PIN_ITR20001_MIDDLE);
+    right_IR = analogRead(PIN_ITR20001_RIGHT);
 
-    while ((aux - xLastWakeTime) * portTICK_PERIOD_MS < TIME_ON_T1) {
-      xLastWakeTime = xTaskGetTickCount();
+    while ((aux - xLastWakeTime) * portTICK_PERIOD_MS < COMPUTATION_TIME_ON_T1) {
+      aux = xTaskGetTickCount();
     }
 
-    xTaskDelayUntil(&xLastWakeTime, (DELAY_T1 / portTICK_PERIOD_MS));
+    uint32_t cost = micros() - start;
+    Serial.print("Coste T1= ");
+    Serial.println(cost);
+
+    xTaskDelayUntil(&xLastWakeTime, (PERIODIC_T1 / portTICK_PERIOD_MS));
   }
 }
 
@@ -66,7 +75,11 @@ void setup() {
   FastLED.addLeds<NEOPIXEL, PIN_RBGLED>(leds, NUM_LEDS);
   FastLED.setBrightness(20);
 
-  xTaskCreate(Task1, "ReadItr", 100, NULL, 1, NULL);
+  pinMode(PIN_ITR20001_LEFT,   INPUT);
+  pinMode(PIN_ITR20001_MIDDLE, INPUT);
+  pinMode(PIN_ITR20001_RIGHT,  INPUT);
+
+  xTaskCreate(Task1, "ReadItr", 128, NULL, 1, NULL);
 
 
 }
