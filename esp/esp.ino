@@ -135,9 +135,6 @@ void setup() {
   Serial.print("Messase sent! to Arduino");
 }
 
-void loop() {
-  yield();
-}
 */
 
 void setup() {
